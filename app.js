@@ -17,7 +17,7 @@ const userRouter = require("./routes/user.js") //user routes for authentication
 
 
 async function main(){
-    await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust")
+    await mongoose.connect(process.env.MongoAtlas);
 }
 
 app.set("view engine", "ejs");
