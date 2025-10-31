@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js")
 const Expresserror = require("../utils/Expresserror.js")
-// const {listingSchema , reviewSchema} = require("../schema.js")
+const {listingSchema , reviewSchema} = require("../schema.js")
 const Listing = require("../models/listing.js") //indicztion error not a problem
 const{isloggedin} = require("../middleware.js");
 
@@ -12,15 +12,45 @@ const upload = multer({ storage }); // This will store the uploaded files in the
 
 
 
+// const validatelisting = (req,res,next)=>{
+//     let{error}= listingSchema.validate(req.body);
+//     if (error){
+//         let errmsg = error.details.map((el)=> el.message).join(",");
+//         throw new Expresserror(404,errmsg);
+//     }else{
+//         next();
+//     }
+// };
 const validatelisting = (req,res,next)=>{
-    let{error}= listingSchema.validate(req.body);
-    if (error){
+    req.body.listing = req.body.listing || {};
+
+    // If multer uploaded a file, attach an image object so Joi sees an object
+    if (req.file) {
+        const url = req.file.path || req.file.secure_url || req.file.url || req.file.location;
+        const filename = req.file.filename || req.file.originalname;
+        req.body.listing.image = { url, filename };
+    } else {
+        // Ensure listing.image is an object (Joi expects object). Remove non-object values.
+        if (req.body.listing.image && typeof req.body.listing.image !== "object") {
+            // remove empty strings or other non-object values that break validation
+            if (String(req.body.listing.image).trim() === "") {
+                delete req.body.listing.image;
+            } else {
+                // safest: delete any non-object to satisfy schema
+                delete req.body.listing.image;
+            }
+        }
+    }
+
+    let { error } = listingSchema.validate(req.body);
+    if (error) {
         let errmsg = error.details.map((el)=> el.message).join(",");
         throw new Expresserror(404,errmsg);
-    }else{
+    } else {
         next();
     }
 };
+
 
 const listingcontroller = require("../controller/listing.js");
 
@@ -31,9 +61,27 @@ const listingcontroller = require("../controller/listing.js");
 // });
 
 router.get("/", wrapAsync(listingcontroller.index));
-router.post("/", isloggedin, upload.single('listing[image]'), validatelisting, (req, res) => {
-    res.send(req.file);
-});
+// router.post("/", isloggedin, upload.single('listing[image]'), validatelisting, (req, res) => {
+//     res.send(req.file);
+// });
+
+router.post(
+    "/",
+    isloggedin,
+    upload.single('listing[image]'),
+    validatelisting,
+    wrapAsync(async (req, res, next) => {
+        const url = req.file ? req.file.path : undefined;
+        const filename = req.file ? req.file.filename : undefined;
+        
+        const newlisting = new Listing(req.body.listing);
+        newlisting.owner = req.user._id; // fixed typo
+        if (url && filename) newlisting.image = { url, filename };
+        await newlisting.save();
+        req.flash("success", "New Listing Created Successfully");
+        res.redirect("/listings");
+    })
+);
 
 
 // Update route
@@ -49,19 +97,19 @@ router.get("/new",isloggedin,(req,res)=>{
     res.render("listings/new.ejs");
 })
 
-// Create Route 
-router.post("/",isloggedin,wrapAsync (async (req,res,next)=>{
-    let url = req.file.path;
-    let filename = req.file.filename;
+// // Create Route 
+// router.post("/",isloggedin,wrapAsync (async (req,res,next)=>{
+//     let url = req.file.path;
+//     let filename = req.file.filename;
     
-    const newlisting = new Listing(req.body.listing);
-    newlisting.owner = req.user._id; // This sets the owner of the listing to the currently logged-in user
-    newlisting.image = {url, filename}; // This sets the image URL and filename for the listing
-    await newlisting.save();
-    req.flash("success","New Listing Created Successfully");
-    res.redirect("/listings");
-})
-);
+//     const newlisting = new Listing(req.body.listing);
+//     newlisting.owner = req.user._id; // This sets the owner of the listing to the currently logged-in user
+//     newlisting.image = {url, filename}; // This sets the image URL and filename for the listing
+//     await newlisting.save();
+//     req.flash("success","New Listing Created Successfully");
+//     res.redirect("/listings");
+// })
+// );
 
 // Show Route
 router.get("/:id",wrapAsync( async (req,res)=>{
