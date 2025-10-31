@@ -150,3 +150,39 @@ Process:
 }
 
 These were the basic concepts involve in the Authenticcation and Authorization part of this project
+
+11. MVC {Model, View, Controller}
+ -Model=> It includes the DataBase and their schemas 
+ -Views=> It includies the frontend part of the website
+ -Controller=> It includes the backend part of the website as it controlles different different Routes 
+ For Eg: The index route from the routes folder the async function is removed and pasted in the controller file i.e listing.js
+         Then the async function is assigned to a new variable and that variable is used everywhere
+
+
+12. Start Rating Animation
+ we took the referance from the github library: starability
+ From here we directly took the code for the animation and then placed in our code , added a new rating.css file and uploaded the code their also.
+
+13. Image Upload Feature
+ Here we have two majour problems we have to solve i.e :
+  1. The current form is not ale to send the file to the backend DataBase.
+  2. Their is always a size limit for the file to be uploaded.
+
+ To solve this issue we will perform these simple steps:
+  1. Make the form capable of sending the files to backend.
+  2. Make use of 3rd party services for storing the file which will generate a URL for that file.
+  3. Then we will save this URL into our Backend mongoDB Database.
+
+ 1 Form Manupulation:
+  insert "enctype=multipart/form-data" this helps in accepting the files.
+  Then change the type of input to "file"
+ 2. Now to send the proper file in formated way to the backend we make use of npm library "multer"
+   "npm i multer"
+   Then we will add the code for accepting the file in the index route
+3. Cloud Setup
+   Create account on Cloudinary and get the API key
+   Setup:
+    Create .env file and upload {CLOUD_NAME, CLOUD_API_KEY, CLOUD_SECRET_KEY}
+    Install "dotenv" to access the credentials from .env file {npm i dotenv}
+    Install cloudanary {npm i cloudinary}
+    Install multer-storage-cloudinary {npm i multer-storage-cloudinary}

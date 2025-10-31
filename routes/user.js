@@ -46,3 +46,6 @@ router.get("/logout", (req, res,next) => {
         res.redirect("/listings");})
     })
 module.exports = router;
+
+
+

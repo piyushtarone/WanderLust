@@ -19,12 +19,8 @@ const listingSchema = new Schema({
     //     set: (v)=> v===""? "https://www.adanirealty.com/-/media/project/realty/blogs/types-of-residential-properties.ashx":v
     // },
     image: {
-  url: {
-    type: String,
-    default: "https://cdn.pixabay.com/photo/2020/01/03/05/36/house-4737447_1280.png",
-    set: (v) => v === "" ? "https://www.adanirealty.com/-/media/project/realty/blogs/types-of-residential-properties.ashx" : v
-  },
-  filename: String
+        url:String,
+        filename: String
     },
     country: String,
 

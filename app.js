@@ -34,15 +34,9 @@ main().then(()=>{
 })
 
 const sessionoptions = {
-    secret: "mysecret",
+    secret: process.env.SECRET ,
     resave: false,
     saveUninitialized: true}
-
-
-app.get("/",(req,res)=>{
-    res.send("Hello Everyone")
-})
-
 
 app.use(session(sessionoptions)); //using the session middleware with the options defined above
 app.use(flash()); //using the flash middleware
@@ -61,17 +55,6 @@ app.use((req,res,next)=>{
     res.locals.curruser = req.user;
     next();
 })
-// app.get("/demouser",async (req,res)=>{
-//     let fakeuser = new User({
-//         email: "abc@gmail.com",
-//         username: "abc",
-//     });
-
-//     let registeredUser = await User.register(fakeuser, "123abcd");
-//     res.send(registeredUser);
-//     console.log(registeredUser);
-// })
-
 app.use("/listings",listingsRouter); //accessing all the routes from the "listing.js"
 app.use("/listings/:id/reviews",reviewsRouter); //accessing all the routes from the "reviews.js"
 app.use("/",userRouter); //accessing all the routes from the "user.js"
@@ -80,7 +63,6 @@ app.use("/",userRouter); //accessing all the routes from the "user.js"
 app.all(/.*/,(req,res,next)=>{
     next(new Expresserror(404,"Page not found"))
 });
-
 app.use((err,req,res,next)=>{
     let {statuscode=500,message="Something went wrong again"}=err;
     res.status(statuscode).send(message)

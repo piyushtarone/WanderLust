@@ -6,6 +6,12 @@ const Expresserror = require("../utils/Expresserror.js")
 const Listing = require("../models/listing.js") //indicztion error not a problem
 const{isloggedin} = require("../middleware.js");
 
+const multer = require("multer");
+const {storage}= require("../cloudConfig.js"); // Importing the cloudinary storage configuration
+const upload = multer({ storage }); // This will store the uploaded files in the 'uploads' directory
+
+
+
 const validatelisting = (req,res,next)=>{
     let{error}= listingSchema.validate(req.body);
     if (error){
@@ -16,12 +22,19 @@ const validatelisting = (req,res,next)=>{
     }
 };
 
+const listingcontroller = require("../controller/listing.js");
 
 // Index Route
-router.get("/", async (req,res)=>{
- const allListings = await Listing.find({});
- res.render("./listings/index.ejs", {allListings});
+// router.get("/", wrapAsync(listingcontroller.index))
+// .post(isloggedin,upload.single('listing[image]'),validatelisting,(req,res)=>{
+    
+// });
+
+router.get("/", wrapAsync(listingcontroller.index));
+router.post("/", isloggedin, upload.single('listing[image]'), validatelisting, (req, res) => {
+    res.send(req.file);
 });
+
 
 // Update route
 router.put("/:id",isloggedin, async (req,res)=>{
@@ -38,8 +51,12 @@ router.get("/new",isloggedin,(req,res)=>{
 
 // Create Route 
 router.post("/",isloggedin,wrapAsync (async (req,res,next)=>{
+    let url = req.file.path;
+    let filename = req.file.filename;
+    
     const newlisting = new Listing(req.body.listing);
     newlisting.owner = req.user._id; // This sets the owner of the listing to the currently logged-in user
+    newlisting.image = {url, filename}; // This sets the image URL and filename for the listing
     await newlisting.save();
     req.flash("success","New Listing Created Successfully");
     res.redirect("/listings");
@@ -83,3 +100,4 @@ router.delete("/:id",isloggedin,wrapAsync( async (req,res)=>{
 }));
 
 module.exports = router;
+
