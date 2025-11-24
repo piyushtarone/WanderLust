@@ -121,7 +121,7 @@ if(!listing){
     req.flash("error","Listing you requested does not exist"); //This will flash an error message
     res.redirect("/listings"); //This will redirect to the index page
 }
-res.render("./listings/show.ejs",{listing})
+res.render("listings/show.ejs",{listing})
 }));
 
 // Edit Route 
